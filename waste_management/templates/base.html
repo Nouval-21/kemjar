@@ -1,445 +1,423 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Manajemen Sampah{% endblock %}</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --primary-green: #2d5016;
-        --secondary-green: #4caf50;
-        --accent-green: #81c784;
-        --light-green: #e8f5e8;
-        --dark-green: #1b5e20;
-      }
 
-      body {
-        background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Manajemen Sampah{% endblock %}</title>
 
-      .navbar-brand {
-        font-weight: 700;
-        font-size: 1.5rem;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-green: #2d5016;
+      --secondary-green: #4caf50;
+      --accent-green: #81c784;
+      --light-green: #e8f5e8;
+      --dark-green: #1b5e20;
+    }
 
-      .navbar {
-        background: linear-gradient(
-          135deg,
+    body {
+      background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar {
+      background: linear-gradient(135deg,
           var(--primary-green) 0%,
-          var(--secondary-green) 100%
-        ) !important;
-        box-shadow: 0 4px 15px rgba(45, 80, 22, 0.3);
-      }
+          var(--secondary-green) 100%) !important;
+      box-shadow: 0 4px 15px rgba(45, 80, 22, 0.3);
+    }
 
-      .navbar-nav .nav-link {
-        font-weight: 500;
-        transition: all 0.3s ease;
-        margin: 0 8px;
-        border-radius: 20px;
-        padding: 8px 16px !important;
-      }
+    .navbar-nav .nav-link {
+      font-weight: 500;
+      transition: all 0.3s ease;
+      margin: 0 8px;
+      border-radius: 20px;
+      padding: 8px 16px !important;
+    }
 
-      .navbar-nav .nav-link:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px);
-      }
+    .navbar-nav .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
 
-      .card {
-        box-shadow: 0 8px 25px rgba(45, 80, 22, 0.15);
-        border: none;
-        border-radius: 15px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-      }
+    .card {
+      box-shadow: 0 8px 25px rgba(45, 80, 22, 0.15);
+      border: none;
+      border-radius: 15px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
 
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(45, 80, 22, 0.25);
-      }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(45, 80, 22, 0.25);
+    }
 
-      .card-header {
-        background: linear-gradient(
-          135deg,
+    .card-header {
+      background: linear-gradient(135deg,
           var(--secondary-green),
-          var(--accent-green)
-        ) !important;
-        border: none;
-        padding: 20px;
-      }
+          var(--accent-green)) !important;
+      border: none;
+      padding: 20px;
+    }
 
-      .btn-success {
-        background: linear-gradient(
-          135deg,
+    .btn-success {
+      background: linear-gradient(135deg,
           var(--secondary-green),
-          var(--accent-green)
-        );
-        border: none;
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-      }
+          var(--accent-green));
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
 
-      .btn-success:hover {
-        background: linear-gradient(
-          135deg,
+    .btn-success:hover {
+      background: linear-gradient(135deg,
           var(--dark-green),
-          var(--secondary-green)
-        );
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+          var(--secondary-green));
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-outline-success {
+      border: 2px solid var(--secondary-green);
+      color: var(--secondary-green);
+      border-radius: 25px;
+      padding: 12px 30px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-success:hover {
+      background: var(--secondary-green);
+      border-color: var(--secondary-green);
+      transform: translateY(-2px);
+    }
+
+    .alert {
+      border-radius: 15px;
+      border: none;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      color: var(--dark-green);
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+      color: #721c24;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg,
+          var(--light-green) 0%,
+          rgba(200, 230, 201, 0.8) 100%);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-section::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle,
+          rgba(76, 175, 80, 0.1) 0%,
+          transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.5;
       }
 
-      .btn-outline-success {
-        border: 2px solid var(--secondary-green);
-        color: var(--secondary-green);
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
       }
+    }
 
-      .btn-outline-success:hover {
-        background: var(--secondary-green);
-        border-color: var(--secondary-green);
-        transform: translateY(-2px);
-      }
+    .hero-section h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--primary-green);
+      margin-bottom: 25px;
+      text-shadow: 0 2px 4px rgba(45, 80, 22, 0.1);
+      position: relative;
+      z-index: 2;
+    }
 
-      .alert {
-        border-radius: 15px;
-        border: none;
-        padding: 15px 20px;
-        margin-bottom: 25px;
-      }
+    .hero-section .lead {
+      font-size: 1.3rem;
+      color: var(--dark-green);
+      opacity: 0.9;
+      position: relative;
+      z-index: 2;
+    }
 
-      .alert-success {
-        background: linear-gradient(135deg, #d4edda, #c3e6cb);
-        color: var(--dark-green);
-      }
+    .feature-card {
+      transition: all 0.3s ease;
+      height: 100%;
+    }
 
-      .alert-danger {
-        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-        color: #721c24;
+    .feature-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .feature-card .card-body {
+      padding: 40px 30px;
+    }
+
+    .feature-icon {
+      background: linear-gradient(135deg,
+          var(--secondary-green),
+          var(--accent-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
+    }
+
+    .stats-card {
+      border-radius: 20px;
+      padding: 25px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(30px, -30px);
+    }
+
+    .bg-primary {
+      background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    }
+
+    .bg-warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+    }
+
+    .bg-info {
+      background: linear-gradient(135deg, #17a2b8, #138496) !important;
+    }
+
+    .bg-success {
+      background: linear-gradient(135deg,
+          var(--secondary-green),
+          var(--accent-green)) !important;
+    }
+
+    .table {
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(45, 80, 22, 0.1);
+    }
+
+    .table thead {
+      background: linear-gradient(135deg,
+          var(--primary-green),
+          var(--secondary-green));
+      color: white;
+    }
+
+    .table tbody tr {
+      border-bottom: 1px solid rgba(45, 80, 22, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+      background: rgba(129, 199, 132, 0.1);
+      transform: scale(1.01);
+    }
+
+    .badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .form-control,
+    .form-select {
+      border-radius: 15px;
+      border: 2px solid rgba(76, 175, 80, 0.2);
+      padding: 15px 20px;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--secondary-green);
+      box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--primary-green);
+      margin-bottom: 10px;
+    }
+
+    footer {
+      background: linear-gradient(135deg,
+          var(--primary-green) 0%,
+          var(--dark-green) 100%) !important;
+      margin-top: 80px;
+    }
+
+    .empty-state {
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: rgba(76, 175, 80, 0.3);
+      margin-bottom: 20px;
+    }
+
+    /* Animasi loading untuk interaktivitas */
+    .btn-success:active {
+      transform: scale(0.95);
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .hero-section h1 {
+        font-size: 2.5rem;
       }
 
       .hero-section {
-        background: linear-gradient(
-          135deg,
-          var(--light-green) 0%,
-          rgba(200, 230, 201, 0.8) 100%
-        );
-        border-radius: 20px;
-        padding: 60px 40px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
+        padding: 40px 20px;
       }
 
-      .hero-section::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-          circle,
-          rgba(76, 175, 80, 0.1) 0%,
-          transparent 70%
-        );
-        animation: pulse 4s ease-in-out infinite;
+      .navbar-nav .nav-link {
+        margin: 5px 0;
+      }
+    }
+
+    /* Subtle animations */
+    .card,
+    .btn,
+    .alert,
+    .table {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
       }
 
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 0.5;
-        }
-        50% {
-          transform: scale(1.1);
-          opacity: 0.8;
-        }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
+    }
+  </style>
+</head>
 
-      .hero-section h1 {
-        font-size: 3.5rem;
-        font-weight: 800;
-        color: var(--primary-green);
-        margin-bottom: 25px;
-        text-shadow: 0 2px 4px rgba(45, 80, 22, 0.1);
-        position: relative;
-        z-index: 2;
-      }
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        <i class="bi bi-recycle me-2"></i>🌱 EcoWaste Manager
+      </a>
 
-      .hero-section .lead {
-        font-size: 1.3rem;
-        color: var(--dark-green);
-        opacity: 0.9;
-        position: relative;
-        z-index: 2;
-      }
-
-      .feature-card {
-        transition: all 0.3s ease;
-        height: 100%;
-      }
-
-      .feature-card:hover {
-        transform: translateY(-10px);
-      }
-
-      .feature-card .card-body {
-        padding: 40px 30px;
-      }
-
-      .feature-icon {
-        background: linear-gradient(
-          135deg,
-          var(--secondary-green),
-          var(--accent-green)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
-      }
-
-      .stats-card {
-        border-radius: 20px;
-        padding: 25px;
-        color: white;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .stats-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100px;
-        height: 100px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        transform: translate(30px, -30px);
-      }
-
-      .bg-primary {
-        background: linear-gradient(135deg, #007bff, #0056b3) !important;
-      }
-      .bg-warning {
-        background: linear-gradient(135deg, #ffc107, #e0a800) !important;
-      }
-      .bg-info {
-        background: linear-gradient(135deg, #17a2b8, #138496) !important;
-      }
-      .bg-success {
-        background: linear-gradient(
-          135deg,
-          var(--secondary-green),
-          var(--accent-green)
-        ) !important;
-      }
-
-      .table {
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(45, 80, 22, 0.1);
-      }
-
-      .table thead {
-        background: linear-gradient(
-          135deg,
-          var(--primary-green),
-          var(--secondary-green)
-        );
-        color: white;
-      }
-
-      .table tbody tr {
-        border-bottom: 1px solid rgba(45, 80, 22, 0.1);
-        transition: all 0.3s ease;
-      }
-
-      .table tbody tr:hover {
-        background: rgba(129, 199, 132, 0.1);
-        transform: scale(1.01);
-      }
-
-      .badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.8rem;
-      }
-
-      .form-control,
-      .form-select {
-        border-radius: 15px;
-        border: 2px solid rgba(76, 175, 80, 0.2);
-        padding: 15px 20px;
-        transition: all 0.3s ease;
-      }
-
-      .form-control:focus,
-      .form-select:focus {
-        border-color: var(--secondary-green);
-        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
-      }
-
-      .form-label {
-        font-weight: 600;
-        color: var(--primary-green);
-        margin-bottom: 10px;
-      }
-
-      footer {
-        background: linear-gradient(
-          135deg,
-          var(--primary-green) 0%,
-          var(--dark-green) 100%
-        ) !important;
-        margin-top: 80px;
-      }
-
-      .empty-state {
-        padding: 60px 40px;
-        text-align: center;
-      }
-
-      .empty-state i {
-        font-size: 4rem;
-        color: rgba(76, 175, 80, 0.3);
-        margin-bottom: 20px;
-      }
-
-      /* Animasi loading untuk interaktivitas */
-      .btn-success:active {
-        transform: scale(0.95);
-      }
-
-      /* Responsive improvements */
-      @media (max-width: 768px) {
-        .hero-section h1 {
-          font-size: 2.5rem;
-        }
-
-        .hero-section {
-          padding: 40px 20px;
-        }
-
-        .navbar-nav .nav-link {
-          margin: 5px 0;
-        }
-      }
-
-      /* Subtle animations */
-      .card,
-      .btn,
-      .alert,
-      .table {
-        animation: fadeInUp 0.6s ease-out;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-    </style>
-  </head>
-  <body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-      <div class="container">
-        <a class="navbar-brand" href="{{ url_for('index') }}">
-          <i class="bi bi-recycle me-2"></i>🌱 EcoWaste Manager
+      <div class="navbar-nav ms-auto">
+        {% if session.user_id %}
+        <a class="nav-link" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-speedometer2"></i> Dashboard
         </a>
+        {% if session.role == 'warga' %}
+        <a class="nav-link" href="{{ url_for('report') }}">
+          <i class="bi bi-plus-circle"></i> Laporkan Sampah
+        </a>
+        {% endif %} {% if session.role == 'admin' %}
+        <a class="nav-link" href="{{ url_for('users') }}">
+          <i class="bi bi-people"></i> Kelola User
+        </a>
+        {% endif %}
+        <a class="nav-link" href="{{ url_for('logout') }}">
+          <i class="bi bi-box-arrow-right"></i> Logout ({{ session.username
+          }})
+        </a>
+        {% else %}
+        <a class="nav-link" href="{{ url_for('login') }}">
+          <i class="bi bi-box-arrow-in-right"></i> Login
+        </a>
+        <a class="nav-link" href="{{ url_for('register') }}">
+          <i class="bi bi-person-plus"></i> Register
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
 
-        <div class="navbar-nav ms-auto">
-          {% if session.user_id %}
-          <a class="nav-link" href="{{ url_for('dashboard') }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-          {% if session.role == 'warga' %}
-          <a class="nav-link" href="{{ url_for('report') }}">
-            <i class="bi bi-plus-circle"></i> Laporkan Sampah
-          </a>
-          {% endif %} {% if session.role == 'admin' %}
-          <a class="nav-link" href="{{ url_for('users') }}">
-            <i class="bi bi-people"></i> Kelola User
-          </a>
-          {% endif %}
-          <a class="nav-link" href="{{ url_for('logout') }}">
-            <i class="bi bi-box-arrow-right"></i> Logout ({{ session.username
-            }})
-          </a>
-          {% else %}
-          <a class="nav-link" href="{{ url_for('login') }}">
-            <i class="bi bi-box-arrow-in-right"></i> Login
-          </a>
-          <a class="nav-link" href="{{ url_for('register') }}">
-            <i class="bi bi-person-plus"></i> Register
-          </a>
-          {% endif %}
+  <main class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+      role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+  </main>
+
+  <footer class="text-white text-center py-4">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <p class="mb-2">
+            <i class="bi bi-recycle me-2"></i>
+            <strong>EcoWaste Manager</strong> - Sistem Manajemen Sampah
+            Digital
+          </p>
+          <p class="mb-0">
+            🌍 Bersama membangun masa depan yang berkelanjutan |
+            <i class="bi bi-heart-fill text-danger"></i> Dibuat untuk Bumi
+            yang lebih hijau
+          </p>
         </div>
       </div>
-    </nav>
+    </div>
+  </footer>
 
-    <main class="container mt-4">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
-      <div
-        class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
-        role="alert"
-      >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-        ></button>
-      </div>
-      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
-    </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 
-    <footer class="text-white text-center py-4">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-12">
-            <p class="mb-2">
-              <i class="bi bi-recycle me-2"></i>
-              <strong>EcoWaste Manager</strong> - Sistem Manajemen Sampah
-              Digital
-            </p>
-            <p class="mb-0">
-              🌍 Bersama membangun masa depan yang berkelanjutan |
-              <i class="bi bi-heart-fill text-danger"></i> Dibuat untuk Bumi
-              yang lebih hijau
-            </p>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
 </html>
