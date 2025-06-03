@@ -1042,7 +1042,7 @@ def report():
     
     return render_template('report.html')
 
-@app.route('/update_status/<int:report_id>')
+@app.route('/update_status/<int:report_id>', methods=['POST'])
 @require_role(['admin', 'petugas'])
 def update_status(report_id):
     status = request.args.get('status')
