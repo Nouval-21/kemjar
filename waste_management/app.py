@@ -25,11 +25,12 @@ from dotenv import load_dotenv
 import mysql.connector.pooling
 
 
-# Load environment variables
-app = Flask(__name__, template_folder='templates')
-
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 # ===========================================
 # SECURITY HARDENING CONFIGURATION
@@ -72,7 +73,7 @@ def inject_csrf_token():
 # Content Security Policy & Security Headers menggunakan Talisman
 # Update Content Security Policy untuk mengakomodasi Bootstrap dan fonts
 csp = {
-    'default-src': "'self'",
+    'default-src': ["'self'"],  # Changed from string to list
     'script-src': [
         "'self'",
         "'unsafe-inline'",
@@ -95,12 +96,12 @@ csp = {
         "https:",
         "blob:"
     ],
-    'connect-src': "'self'",
-    'frame-ancestors': "'none'",
-    'form-action': "'self'",
-    'base-uri': "'self'",
-    'object-src': "'none'",
-    'upgrade-insecure-requests': True
+    'connect-src': ["'self'"],  # Changed from string to list
+    'frame-ancestors': ["'none'"],  # Changed from string to list
+    'form-action': ["'self'"],  # Changed from string to list
+    'base-uri': ["'self'"],  # Changed from string to list
+    'object-src': ["'none'"], 
+    # 'upgrade-insecure-requests': True
 }
 
 
@@ -108,11 +109,12 @@ csp = {
 try:
     talisman = Talisman(
         app,
-        force_https=True,
-        strict_transport_security=True,
+        force_https=False,
+        strict_transport_security=False,
         strict_transport_security_max_age=31536000,
         content_security_policy=csp,
         content_security_policy_nonce_in=['script-src', 'style-src'],
+        force_https_permanent=False,
         feature_policy={
             'geolocation': "'none'",
             'camera': "'none'",
@@ -1045,8 +1047,19 @@ def report():
 @app.route('/update_status/<int:report_id>', methods=['POST'])
 @require_role(['admin', 'petugas'])
 def update_status(report_id):
-    status = request.args.get('status')
+    # PERBAIKAN: Gunakan request.form (bukan request.args) untuk POST data
+    status = request.form.get('status')  # Sebelumnya: request.args.get('status')
     valid_statuses = ['pending', 'processed', 'completed']
+    
+    # Debug logging untuk troubleshooting
+    print(f"DEBUG - Report ID: {report_id}")
+    print(f"DEBUG - Status from form: {status}")
+    print(f"DEBUG - All form data: {request.form}")
+    print(f"DEBUG - User role: {session.get('role')}")
+    
+    if not status:
+        flash('Status tidak ditemukan dalam request!', 'error')
+        return redirect(url_for('dashboard'))
     
     if status not in valid_statuses:
         flash('Status tidak valid!', 'error')
@@ -1065,7 +1078,8 @@ def update_status(report_id):
         conn = get_db_connection()
         cursor = conn.cursor(prepared=True)
 
-        cursor.execute('SELECT user_id FROM waste_reports WHERE id = ?', (report_id,))
+        # Cek apakah laporan ada
+        cursor.execute('SELECT user_id, status FROM waste_reports WHERE id = ?', (report_id,))
         report = cursor.fetchone()
 
         if not report:
@@ -1073,19 +1087,28 @@ def update_status(report_id):
                              user_id=session['user_id'], 
                              details=f"Report not found - ID: {report_id}")
             flash('Laporan tidak ditemukan!', 'error')
+            cursor.close()
+            conn.close()
             return redirect(url_for('dashboard'))
 
-        # Update status with prepared statement
+        old_status = report[1]  # Status lama untuk logging
+        
+        # Update status dengan prepared statement
         cursor.execute('UPDATE waste_reports SET status = ? WHERE id = ?', 
                       (status, report_id))
-        conn.commit()
+        
+        # Cek apakah update berhasil
+        if cursor.rowcount == 0:
+            flash('Tidak ada perubahan status!', 'warning')
+        else:
+            conn.commit()
+            log_security_event('STATUS_UPDATED', 
+                              user_id=session['user_id'], 
+                              details=f"Report ID: {report_id}, Old Status: {old_status}, New Status: {status}")
+            flash(f'Status laporan #{report_id} berhasil diubah dari "{old_status}" ke "{status}"!', 'success')
+        
         cursor.close()
         conn.close()
-
-        log_security_event('STATUS_UPDATED', 
-                          user_id=session['user_id'], 
-                          details=f"Report ID: {report_id}, New Status: {status}")
-        flash('Status berhasil diperbarui!', 'success')
         
     except mysql.connector.Error as err:
         handle_db_error(err)
@@ -1094,6 +1117,9 @@ def update_status(report_id):
                           details=f"Database error: {err}", 
                           level='ERROR')
         flash('Terjadi kesalahan sistem. Silakan coba lagi.', 'error')
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        flash('Terjadi kesalahan tak terduga.', 'error')
     
     return redirect(url_for('dashboard'))
 

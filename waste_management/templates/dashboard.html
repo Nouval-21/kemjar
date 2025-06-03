@@ -8,15 +8,15 @@
         <h2>
             <i class="bi bi-speedometer2"></i> Dashboard
             {% if session.role == 'admin' %}
-                <span class="badge bg-danger">Admin</span>
+            <span class="badge bg-danger">Admin</span>
             {% else %}
-                <span class="badge bg-success">Warga</span>
+            <span class="badge bg-success">Warga</span>
             {% endif %}
         </h2>
         {% if session.role == 'warga' %}
-            <a href="{{ url_for('report') }}" class="btn btn-success shadow">
-                <i class="bi bi-plus-circle"></i> Laporkan Sampah
-            </a>
+        <a href="{{ url_for('report') }}" class="btn btn-success shadow">
+            <i class="bi bi-plus-circle"></i> Laporkan Sampah
+        </a>
         {% endif %}
     </div>
 
@@ -74,88 +74,117 @@
             <h5 class="mb-0">
                 <i class="bi bi-list-ul"></i>
                 {% if session.role == 'admin' %}
-                    Semua Laporan Sampah
+                Semua Laporan Sampah
                 {% else %}
-                    Laporan Sampah Anda
+                Laporan Sampah Anda
                 {% endif %}
             </h5>
         </div>
         <div class="card-body">
             {% if reports %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                {% if session.role == 'admin' %}
-                                    <th>Pelapor</th>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            {% if session.role == 'admin' %}
+                            <th>Pelapor</th>
+                            {% endif %}
+                            <th>Lokasi</th>
+                            <th>Jenis Sampah</th>
+                            <th>Deskripsi</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                            {% if session.role == 'admin' %}
+                            <th>Aksi</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            {% if session.role == 'admin' %}
+                            <td>{{ report.username }}</td>
+                            {% endif %}
+                            <td>{{ report.location }}</td>
+                            <td>{{ report.waste_type }}</td>
+                            <td>{{ report.description or '-' }}</td>
+                            <td>
+                                {% if report.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Menunggu</span>
+                                {% elif report.status == 'processed' %}
+                                <span class="badge bg-info text-dark">Diproses</span>
+                                {% elif report.status == 'completed' %}
+                                <span class="badge bg-success">Selesai</span>
                                 {% endif %}
-                                <th>Lokasi</th>
-                                <th>Jenis Sampah</th>
-                                <th>Deskripsi</th>
-                                <th>Status</th>
-                                <th>Tanggal</th>
-                                {% if session.role == 'admin' %}
-                                    <th>Aksi</th>
+                            </td>
+                            <td>
+                                {% if report.created_at %}
+                                {% if report.created_at is string %}
+                                {{ report.created_at.split()[0] }}
+                                {% else %}
+                                {{ report.created_at.strftime('%Y-%m-%d') }}
                                 {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for report in reports %}
-                                <tr>
-                                    <td>{{ report.id }}</td>
-                                    {% if session.role == 'admin' %}
-                                        <td>{{ report.username }}</td>
-                                    {% endif %}
-                                    <td>{{ report.location }}</td>
-                                    <td>{{ report.waste_type }}</td>
-                                    <td>{{ report.description or '-' }}</td>
-                                    <td>
-                                        {% if report.status == 'pending' %}
-                                            <span class="badge bg-warning text-dark">Menunggu</span>
-                                        {% elif report.status == 'processed' %}
-                                            <span class="badge bg-info text-dark">Diproses</span>
-                                        {% elif report.status == 'completed' %}
-                                            <span class="badge bg-success">Selesai</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if report.created_at %}
-                                            {% if report.created_at is string %}
-                                                {{ report.created_at.split()[0] }}
-                                            {% else %}
-                                                {{ report.created_at.strftime('%Y-%m-%d') }}
-                                            {% endif %}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    {% if session.role == 'admin' %}
-                                        <td>
-                                            <form method="POST" action="{{ url_for('update_status', report_id=report.id) }}" class="d-inline">
-                                                <select name="status" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
-                                                    <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>Menunggu</option>
-                                                    <option value="processed" {% if report.status == 'processed' %}selected{% endif %}>Diproses</option>
-                                                    <option value="completed" {% if report.status == 'completed' %}selected{% endif %}>Selesai</option>
-                                                </select>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            {% if session.role == 'admin' %}
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#statusModal{{ report.id }}">
+                                    <i class="bi bi-pencil"></i> Ubah Status
+                                </button>
+
+                                <div class="modal fade" id="statusModal{{ report.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h6 class="modal-title">Ubah Status Laporan #{{ report.id }}</h6>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="POST"
+                                                action="{{ url_for('update_status', report_id=report.id) }}">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <label class="form-label">Status Baru:</label>
+                                                    <select name="status" class="form-select" required>
+                                                        <option value="pending" {% if report.status=='pending'
+                                                            %}selected{% endif %}>Menunggu</option>
+                                                        <option value="processed" {% if report.status=='processed'
+                                                            %}selected{% endif %}>Diproses</option>
+                                                        <option value="completed" {% if report.status=='completed'
+                                                            %}selected{% endif %}>Selesai</option>
+                                                    </select>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary btn-sm"
+                                                        data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+                                                </div>
                                             </form>
-                                        </td>
-                                    {% endif %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                    <p class="text-muted mt-2">Belum ada laporan sampah</p>
-                    {% if session.role == 'warga' %}
-                        <a href="{{ url_for('report') }}" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Buat Laporan Pertama
-                        </a>
-                    {% endif %}
-                </div>
+            <div class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">Belum ada laporan sampah</p>
+                {% if session.role == 'warga' %}
+                <a href="{{ url_for('report') }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Buat Laporan Pertama
+                </a>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
     </div>

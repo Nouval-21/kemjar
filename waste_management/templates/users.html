@@ -9,7 +9,7 @@
     <h5>Daftar User Terdaftar</h5>
   </div>
   <div class="card-body">
-    {% if users %}
+    {% if users and users|length > 0 %}
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
@@ -25,41 +25,63 @@
         <tbody>
           {% for user in users %}
           <tr>
-            <td>{{ user[0] }}</td>
-            <td>{{ user[1] }}</td>
-            <td>{{ user[2] }}</td>
+            <td>{{ user.id if user.id is defined else (user[0] if user[0] is defined else '-') }}</td>
+            <td>{{ user.username if user.username is defined else (user[1] if user[1] is defined else '-') }}</td>
+            <td>{{ user.email if user.email is defined else (user[2] if user[2] is defined else '-') }}</td>
             <td>
-              {% if user[3] == 'admin' %}
+              {% set user_role = user.role if user.role is defined else (user[3] if user[3] is defined else 'warga') %}
+              {% if user_role == 'admin' %}
               <span class="badge bg-danger">Admin</span>
               {% else %}
               <span class="badge bg-success">Warga</span>
               {% endif %}
             </td>
             <td>
-              {% if user[4] %}
-                {{ user[4].strftime('%Y-%m-%d') }}
+              {% set user_date = user.created_at if user.created_at is defined else (user[4] if user[4] is defined else
+              None) %}
+              {% if user_date %}
+              {% if user_date.strftime is defined %}
+              {{ user_date.strftime('%Y-%m-%d') }}
               {% else %}
-                -
+              {{ user_date }}
+              {% endif %}
+              {% else %}
+              -
               {% endif %}
             </td>
             <td>
-              {% if user[0] != session.user_id %}
-              <form method="POST" action="{{ url_for('change_role', user_id=user[0]) }}" style="display: inline;">
-                <select name="role" class="form-select form-select-sm" style="width: auto; display: inline-block;" onchange="confirmRoleChange(this)">
-                  <option value="warga" {% if user[3] == 'warga' %}selected{% endif %}>Warga</option>
-                  <option value="admin" {% if user[3] == 'admin' %}selected{% endif %}>Admin</option>
+              {% set user_id = user.id if user.id is defined else (user[0] if user[0] is defined else 0) %}
+              {% set current_user_id = session.user_id if session.user_id is defined else 0 %}
+
+              {% if user_id != current_user_id %}
+              <!-- Form untuk change role -->
+              <form method="POST" action="{{ url_for('change_role', user_id=user_id) }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="role" class="form-select form-select-sm" style="width: auto; display: inline-block;"
+                  onchange="confirmRoleChange(this)" data-original="{{ user_role }}">
+                  <option value="warga" {% if user_role=='warga' %}selected{% endif %}>Warga</option>
+                  <option value="admin" {% if user_role=='admin' %}selected{% endif %}>Admin</option>
                 </select>
-                <button type="submit" class="btn btn-sm btn-primary ms-1" style="display: none;" id="saveBtn-{{ user[0] }}">
+                <button type="submit" class="btn btn-sm btn-primary ms-1" style="display: none;"
+                  id="saveBtn-{{ user_id }}">
                   <i class="bi bi-check"></i>
                 </button>
               </form>
-              
-              {% if user[3] != 'admin' or (users|selectattr('3', 'equalto', 'admin')|list|length > 1) %}
-              <button class="btn btn-sm btn-danger ms-1" onclick="confirmDelete({{ user[0] }}, '{{ user[1] }}')">
-                <i class="bi bi-trash"></i>
-              </button>
+
+              <!-- Form terpisah untuk delete user -->
+              {% set admin_count = users|selectattr('role' if users[0].role is defined else '3', 'equalto',
+              'admin')|list|length %}
+              {% if user_role != 'admin' or admin_count > 1 %}
+              <form method="POST" action="{{ url_for('delete_user', user_id=user_id) }}" style="display: inline;"
+                onsubmit="return confirmDelete('{{ user.username if user.username is defined else (user[1] if user[1] is defined else '') }}')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-sm btn-danger ms-1">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
               {% endif %}
-              
+
               {% else %}
               <small class="text-muted">Anda sendiri</small>
               {% endif %}
@@ -78,53 +100,46 @@
   </div>
 </div>
 
-<!-- Hidden forms for delete action -->
-<form id="deleteForm" method="POST" style="display: none;">
-</form>
-
 <script>
-function confirmRoleChange(selectElement) {
-  const form = selectElement.closest('form');
-  const saveBtn = document.getElementById('saveBtn-' + form.action.split('/').pop());
-  const originalValue = selectElement.dataset.original || selectElement.value;
-  
-  if (!selectElement.dataset.original) {
-    selectElement.dataset.original = selectElement.value;
-  }
-  
-  if (selectElement.value !== selectElement.dataset.original) {
-    if (confirm('Apakah Anda yakin ingin mengubah role user ini?')) {
-      saveBtn.style.display = 'inline-block';
-    } else {
-      selectElement.value = selectElement.dataset.original;
-    }
-  } else {
-    saveBtn.style.display = 'none';
-  }
-}
+  function confirmRoleChange(selectElement) {
+    const form = selectElement.closest('form');
+    const userId = form.action.split('/').pop();
+    const saveBtn = document.getElementById('saveBtn-' + userId);
+    const originalValue = selectElement.dataset.original;
 
-function confirmDelete(userId, username) {
-  if (confirm(`Apakah Anda yakin ingin menghapus user "${username}"? Tindakan ini tidak dapat dibatalkan.`)) {
-    const form = document.getElementById('deleteForm');
-    form.action = "{{ url_for('delete_user', user_id=0) }}".replace('0', userId);
-    form.submit();
+    if (selectElement.value !== originalValue) {
+      if (confirm('Apakah Anda yakin ingin mengubah role user ini?')) {
+        saveBtn.style.display = 'inline-block';
+      } else {
+        selectElement.value = originalValue;
+      }
+    } else {
+      saveBtn.style.display = 'none';
+    }
   }
-}
+
+  function confirmDelete(username) {
+    return confirm(`Apakah Anda yakin ingin menghapus user "${username}"? Tindakan ini tidak dapat dibatalkan.`);
+  }
 </script>
 
 <style>
-.table td {
-  vertical-align: middle;
-}
+  .table td {
+    vertical-align: middle;
+  }
 
-.form-select-sm {
-  font-size: 0.875rem;
-  min-width: 100px;
-}
+  .form-select-sm {
+    font-size: 0.875rem;
+    min-width: 100px;
+  }
 
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+  }
 </style>
 {% endblock %}
