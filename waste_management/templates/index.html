@@ -1,0 +1,67 @@
+{% extends "base.html" %} {% block content %}
+<div class="hero-section bg-success-light rounded p-5 mb-5 text-center">
+  <h1 class="display-4 fw-bold text-success mb-3">
+    <i class="bi bi-recycle"></i> Sistem Manajemen Sampah
+  </h1>
+  <p class="lead mb-4">
+    Platform digital untuk pelaporan dan pengelolaan sampah di lingkungan Anda.
+    Bersama-sama kita ciptakan lingkungan yang lebih bersih dan sehat.
+  </p>
+  {% if not session.user_id %}
+  <div class="d-flex gap-3 justify-content-center">
+    <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">
+      <i class="bi bi-person-plus"></i> Daftar Sekarang
+    </a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline-success btn-lg">
+      <i class="bi bi-box-arrow-in-right"></i> Login
+    </a>
+  </div>
+  {% else %}
+  <a href="{{ url_for('dashboard') }}" class="btn btn-success btn-lg">
+    <i class="bi bi-speedometer2"></i> Ke Dashboard
+  </a>
+  {% endif %}
+</div>
+
+<div class="row">
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 text-center">
+      <div class="card-body">
+        <i class="bi bi-geo-alt-fill text-success" style="font-size: 3rem"></i>
+        <h5 class="card-title mt-3">Laporkan Sampah</h5>
+        <p class="card-text">
+          Laporkan lokasi sampah yang perlu ditangani di sekitar Anda dengan
+          mudah dan cepat.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 text-center">
+      <div class="card-body">
+        <i
+          class="bi bi-clipboard-check text-success"
+          style="font-size: 3rem"
+        ></i>
+        <h5 class="card-title mt-3">Pantau Status</h5>
+        <p class="card-text">
+          Pantau status laporan Anda dan lihat progres penanganan sampah secara
+          real-time.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 text-center">
+      <div class="card-body">
+        <i class="bi bi-people-fill text-success" style="font-size: 3rem"></i>
+        <h5 class="card-title mt-3">Komunitas Bersih</h5>
+        <p class="card-text">
+          Bergabung dengan komunitas peduli lingkungan untuk menciptakan
+          lingkungan yang lebih bersih.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

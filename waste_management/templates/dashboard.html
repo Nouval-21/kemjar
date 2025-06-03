@@ -1,0 +1,158 @@
+% extends "base.html" %}
+
+{% block title %}Dashboard - Manajemen Sampah{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-speedometer2"></i> Dashboard
+        {% if session.role == 'admin' %}
+            <span class="badge bg-danger">Admin</span>
+        {% else %}
+            <span class="badge bg-success">Warga</span>
+        {% endif %}
+    </h2>
+    {% if session.role == 'warga' %}
+        <a href="{{ url_for('report') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Laporkan Sampah
+        </a>
+    {% endif %}
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.total_reports }}</h4>
+                        <p class="mb-0">Total Laporan</p>
+                    </div>
+                    <i class="bi bi-clipboard-data" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.pending }}</h4>
+                        <p class="mb-0">Menunggu</p>
+                    </div>
+                    <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.processed }}</h4>
+                        <p class="mb-0">Diproses</p>
+                    </div>
+                    <i class="bi bi-gear" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.completed }}</h4>
+                        <p class="mb-0">Selesai</p>
+                    </div>
+                    <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-list-ul"></i> 
+            {% if session.role == 'admin' %}
+                Semua Laporan Sampah
+            {% else %}
+                Laporan Sampah Anda
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            {% if session.role == 'admin' %}
+                                <th>Pelapor</th>
+                            {% endif %}
+                            <th>Lokasi</th>
+                            <th>Jenis Sampah</th>
+                            <th>Deskripsi</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                            {% if session.role == 'admin' %}
+                                <th>Aksi</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                            <tr>
+                                <td>{{ report.id }}</td>
+                                {% if session.role == 'admin' %}
+                                    <td>{{ report.username }}</td>
+                                {% endif %}
+                                <td>{{ report.location }}</td>
+                                <td>{{ report.waste_type }}</td>
+                                <td>{{ report.description or '-' }}</td>
+                                <td>
+                                    {% if report.status == 'pending' %}
+                                        <span class="badge bg-warning">Menunggu</span>
+                                    {% elif report.status == 'processed' %}
+                                        <span class="badge bg-info">Diproses</span>
+                                    {% elif report.status == 'completed' %}
+                                        <span class="badge bg-success">Selesai</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ report.created_at.split()[0] if report.created_at else '-' }}</td>
+                                {% if session.role == 'admin' %}
+                                    <td>
+                                        <form method="POST" action="{{ url_for('update_status', report_id=report.id) }}" class="d-inline">
+                                            <select name="status" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+                                                <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>Menunggu</option>
+                                                <option value="processed" {% if report.status == 'processed' %}selected{% endif %}>Diproses</option>
+                                                <option value="completed" {% if report.status == 'completed' %}selected{% endif %}>Selesai</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">Belum ada laporan sampah</p>
+                {% if session.role == 'warga' %}
+                    <a href="{{ url_for('report') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Buat Laporan Pertama
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

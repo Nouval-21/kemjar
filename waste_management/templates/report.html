@@ -1,0 +1,75 @@
+{% extends "base.html" %} {% block title %}Laporkan Sampah - Manajemen Sampah{%
+endblock %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header text-white">
+        <h4><i class="bi bi-plus-circle me-2"></i>📝 Laporkan Sampah</h4>
+        <p class="mb-0">
+          Bantu kami mengidentifikasi area yang membutuhkan perhatian
+        </p>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label for="location" class="form-label"
+              >Lokasi <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="location"
+              name="location"
+              placeholder="Contoh: Jl. Merdeka No. 123, Kelurahan ABC"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="waste_type" class="form-label"
+              >Jenis Sampah <span class="text-danger">*</span></label
+            >
+            <select
+              class="form-select"
+              id="waste_type"
+              name="waste_type"
+              required
+            >
+              <option value="">Pilih jenis sampah</option>
+              <option value="Organik">Sampah Organik</option>
+              <option value="Anorganik">Sampah Anorganik</option>
+              <option value="Plastik">Sampah Plastik</option>
+              <option value="Kertas">Sampah Kertas</option>
+              <option value="Logam">Sampah Logam</option>
+              <option value="Kaca">Sampah Kaca</option>
+              <option value="Elektronik">Sampah Elektronik</option>
+              <option value="Berbahaya">Sampah Berbahaya (B3)</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">Deskripsi</label>
+            <textarea
+              class="form-control"
+              id="description"
+              name="description"
+              rows="4"
+              placeholder="Deskripsikan kondisi sampah, jumlah perkiraan, dan informasi tambahan lainnya..."
+            ></textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-send"></i> Kirim Laporan
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+              <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
