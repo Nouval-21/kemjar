@@ -1,5 +1,7 @@
-{% extends "base.html" %} {% block title %}Kelola User - Manajemen Sampah{%
-endblock %} {% block content %}
+{% extends "base.html" %}
+{% block title %}Kelola User - Manajemen Sampah{% endblock %}
+
+{% block content %}
 <h2><i class="bi bi-people"></i> Kelola User</h2>
 
 <div class="card">
@@ -17,23 +19,50 @@ endblock %} {% block content %}
             <th>Email</th>
             <th>Role</th>
             <th>Tanggal Daftar</th>
+            <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           {% for user in users %}
           <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.email }}</td>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
             <td>
-              {% if user.role == 'admin' %}
+              {% if user[3] == 'admin' %}
               <span class="badge bg-danger">Admin</span>
               {% else %}
               <span class="badge bg-success">Warga</span>
               {% endif %}
             </td>
             <td>
-              {{ user.created_at.split()[0] if user.created_at else '-' }}
+              {% if user[4] %}
+                {{ user[4].strftime('%Y-%m-%d') }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if user[0] != session.user_id %}
+              <form method="POST" action="{{ url_for('change_role', user_id=user[0]) }}" style="display: inline;">
+                <select name="role" class="form-select form-select-sm" style="width: auto; display: inline-block;" onchange="confirmRoleChange(this)">
+                  <option value="warga" {% if user[3] == 'warga' %}selected{% endif %}>Warga</option>
+                  <option value="admin" {% if user[3] == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary ms-1" style="display: none;" id="saveBtn-{{ user[0] }}">
+                  <i class="bi bi-check"></i>
+                </button>
+              </form>
+              
+              {% if user[3] != 'admin' or (users|selectattr('3', 'equalto', 'admin')|list|length > 1) %}
+              <button class="btn btn-sm btn-danger ms-1" onclick="confirmDelete({{ user[0] }}, '{{ user[1] }}')">
+                <i class="bi bi-trash"></i>
+              </button>
+              {% endif %}
+              
+              {% else %}
+              <small class="text-muted">Anda sendiri</small>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -48,4 +77,54 @@ endblock %} {% block content %}
     {% endif %}
   </div>
 </div>
+
+<!-- Hidden forms for delete action -->
+<form id="deleteForm" method="POST" style="display: none;">
+</form>
+
+<script>
+function confirmRoleChange(selectElement) {
+  const form = selectElement.closest('form');
+  const saveBtn = document.getElementById('saveBtn-' + form.action.split('/').pop());
+  const originalValue = selectElement.dataset.original || selectElement.value;
+  
+  if (!selectElement.dataset.original) {
+    selectElement.dataset.original = selectElement.value;
+  }
+  
+  if (selectElement.value !== selectElement.dataset.original) {
+    if (confirm('Apakah Anda yakin ingin mengubah role user ini?')) {
+      saveBtn.style.display = 'inline-block';
+    } else {
+      selectElement.value = selectElement.dataset.original;
+    }
+  } else {
+    saveBtn.style.display = 'none';
+  }
+}
+
+function confirmDelete(userId, username) {
+  if (confirm(`Apakah Anda yakin ingin menghapus user "${username}"? Tindakan ini tidak dapat dibatalkan.`)) {
+    const form = document.getElementById('deleteForm');
+    form.action = "{{ url_for('delete_user', user_id=0) }}".replace('0', userId);
+    form.submit();
+  }
+}
+</script>
+
+<style>
+.table td {
+  vertical-align: middle;
+}
+
+.form-select-sm {
+  font-size: 0.875rem;
+  min-width: 100px;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+</style>
 {% endblock %}

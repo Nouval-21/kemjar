@@ -149,61 +149,86 @@ def dashboard():
     
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)  # Use dictionary cursor for easier access
         
         if session['role'] == 'admin':
-            # Admin dashboard - show all reports
-            cursor.execute('''SELECT wr.*, u.username 
+            # Admin dashboard - show all reports with user info
+            cursor.execute('''SELECT wr.id, wr.user_id, wr.location, wr.waste_type, 
+                                    wr.description, wr.status, wr.created_at, u.username 
                              FROM waste_reports wr 
                              JOIN users u ON wr.user_id = u.id 
                              ORDER BY wr.created_at DESC''')
             reports = cursor.fetchall()
             
-            # Get statistics
-            cursor.execute('SELECT COUNT(*) FROM waste_reports')
-            total_reports = cursor.fetchone()[0]
+            # Get statistics for admin
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports')
+            total_reports = cursor.fetchone()['count']
             
-            cursor.execute('SELECT COUNT(*) FROM waste_reports WHERE status = "pending"')
-            pending_reports = cursor.fetchone()[0]
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE status = "pending"')
+            pending_reports = cursor.fetchone()['count']
             
-            cursor.execute('SELECT COUNT(*) FROM waste_reports WHERE status = "completed"')
-            completed_reports = cursor.fetchone()[0]
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE status = "processed"')
+            processed_reports = cursor.fetchone()['count']
+            
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE status = "completed"')
+            completed_reports = cursor.fetchone()['count']
             
             stats = {
-                'total': total_reports,
+                'total_reports': total_reports,
                 'pending': pending_reports,
+                'processed': processed_reports,
                 'completed': completed_reports
             }
         else:
             # User dashboard - show only their reports
-            cursor.execute('SELECT * FROM waste_reports WHERE user_id = %s ORDER BY created_at DESC',
+            cursor.execute('''SELECT id, user_id, location, waste_type, description, 
+                                    status, created_at 
+                             FROM waste_reports 
+                             WHERE user_id = %s 
+                             ORDER BY created_at DESC''',
                          (session['user_id'],))
             reports = cursor.fetchall()
             
             # Get user statistics
-            cursor.execute('SELECT COUNT(*) FROM waste_reports WHERE user_id = %s', (session['user_id'],))
-            total_reports = cursor.fetchone()[0]
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE user_id = %s', (session['user_id'],))
+            total_reports = cursor.fetchone()['count']
             
-            cursor.execute('SELECT COUNT(*) FROM waste_reports WHERE user_id = %s AND status = "pending"',
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE user_id = %s AND status = "pending"',
                          (session['user_id'],))
-            pending_reports = cursor.fetchone()[0]
+            pending_reports = cursor.fetchone()['count']
             
-            cursor.execute('SELECT COUNT(*) FROM waste_reports WHERE user_id = %s AND status = "completed"',
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE user_id = %s AND status = "processed"',
                          (session['user_id'],))
-            completed_reports = cursor.fetchone()[0]
+            processed_reports = cursor.fetchone()['count']
+            
+            cursor.execute('SELECT COUNT(*) as count FROM waste_reports WHERE user_id = %s AND status = "completed"',
+                         (session['user_id'],))
+            completed_reports = cursor.fetchone()['count']
             
             stats = {
-                'total': total_reports,
+                'total_reports': total_reports,
                 'pending': pending_reports,
+                'processed': processed_reports,
                 'completed': completed_reports
             }
         
         cursor.close()
         conn.close()
+        
+        # Debug print untuk memastikan data benar
+        print(f"User role: {session['role']}")
+        print(f"Total reports found: {len(reports) if reports else 0}")
+        print(f"Stats: {stats}")
+        if reports and len(reports) > 0:
+            print(f"First report keys: {reports[0].keys()}")
+        
         return render_template('dashboard.html', reports=reports, stats=stats)
         
     except mysql.connector.Error as err:
         flash(f'Error database: {err}', 'error')
+        return redirect(url_for('index'))
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('index'))
 
 @app.route('/report', methods=['GET', 'POST'])
@@ -237,13 +262,14 @@ def report():
     
     return render_template('report.html')
 
-@app.route('/update_status/<int:report_id>')
+# FIXED: Update status route with POST method and proper form handling
+@app.route('/update_status/<int:report_id>', methods=['POST'])
 def update_status(report_id):
     if 'user_id' not in session or session['role'] != 'admin':
         flash('Akses ditolak!', 'error')
         return redirect(url_for('dashboard'))
     
-    status = request.args.get('status')
+    status = request.form.get('status')  # Changed from request.args.get to request.form.get
     if status not in ['pending', 'processed', 'completed']:
         flash('Status tidak valid!', 'error')
         return redirect(url_for('dashboard'))
@@ -256,7 +282,12 @@ def update_status(report_id):
         cursor.close()
         conn.close()
         
-        flash(f'Status laporan berhasil diubah menjadi {status}!', 'success')
+        status_text = {
+            'pending': 'Menunggu',
+            'processed': 'Diproses', 
+            'completed': 'Selesai'
+        }
+        flash(f'Status laporan berhasil diubah menjadi {status_text[status]}!', 'success')
     except mysql.connector.Error as err:
         flash(f'Error database: {err}', 'error')
     
@@ -281,9 +312,115 @@ def users():
         flash(f'Error database: {err}', 'error')
         return redirect(url_for('dashboard'))
 
+@app.route('/change_role/<int:user_id>', methods=['POST'])
+def change_role(user_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        flash('Akses ditolak!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Prevent changing own role
+    if user_id == session['user_id']:
+        flash('Anda tidak dapat mengubah role Anda sendiri!', 'error')
+        return redirect(url_for('users'))
+    
+    new_role = request.form.get('role')
+    if new_role not in ['warga', 'admin']:
+        flash('Role tidak valid!', 'error')
+        return redirect(url_for('users'))
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if this is the last admin
+        if new_role == 'warga':
+            cursor.execute('SELECT COUNT(*) FROM users WHERE role = "admin"')
+            admin_count = cursor.fetchone()[0]
+            if admin_count <= 1:
+                flash('Tidak bisa mengubah role admin terakhir!', 'error')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('users'))
+        
+        # Get username for flash message
+        cursor.execute('SELECT username FROM users WHERE id = %s', (user_id,))
+        username_result = cursor.fetchone()
+        if not username_result:
+            flash('User tidak ditemukan!', 'error')
+            cursor.close()
+            conn.close()
+            return redirect(url_for('users'))
+        
+        username = username_result[0]
+        
+        # Update role
+        cursor.execute('UPDATE users SET role = %s WHERE id = %s', (new_role, user_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        role_text = 'Admin' if new_role == 'admin' else 'Warga'
+        flash(f'Role user {username} berhasil diubah menjadi {role_text}!', 'success')
+        
+    except mysql.connector.Error as err:
+        flash(f'Error database: {err}', 'error')
+    
+    return redirect(url_for('users'))
+
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        flash('Akses ditolak!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Prevent deleting own account
+    if user_id == session['user_id']:
+        flash('Anda tidak dapat menghapus akun Anda sendiri!', 'error')
+        return redirect(url_for('users'))
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if this is the last admin
+        cursor.execute('SELECT role FROM users WHERE id = %s', (user_id,))
+        user_result = cursor.fetchone()
+        if not user_result:
+            flash('User tidak ditemukan!', 'error')
+            cursor.close()
+            conn.close()
+            return redirect(url_for('users'))
+        
+        user_role = user_result[0]
+        if user_role == 'admin':
+            cursor.execute('SELECT COUNT(*) FROM users WHERE role = "admin"')
+            admin_count = cursor.fetchone()[0]
+            if admin_count <= 1:
+                flash('Tidak bisa menghapus admin terakhir!', 'error')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('users'))
+        
+        # Get username for flash message
+        cursor.execute('SELECT username FROM users WHERE id = %s', (user_id,))
+        username = cursor.fetchone()[0]
+        
+        # Delete user's reports first (foreign key constraint)
+        cursor.execute('DELETE FROM waste_reports WHERE user_id = %s', (user_id,))
+        
+        # Delete user
+        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        flash(f'User {username} berhasil dihapus!', 'success')
+        
+    except mysql.connector.Error as err:
+        flash(f'Error database: {err}', 'error')
+    
+    return redirect(url_for('users'))
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-
-# Install mysql-connector-python
-# pip install mysql-connector-python
